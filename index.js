@@ -33,10 +33,112 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // await client.connect();
-    const database = client.db("Assingment11");
-    const userCollection = database.collection("UserCollection");
 
-   
+    const database = client.db("Assingment11");
+    // const BrandNames = database.collection("BrandNames");
+    // const ProductCollection = database.collection("ProductCollection");
+    // const UserProductCollection = database.collection("UserProductCollection");
+    const userCollection = database.collection("UserCollection");
+    const sliderCollection= database.collection("sliderCollection");
+
+    // app.post("/jwt", (req, res) => {
+    //   const data = req.body;
+    //   const tokenDB = jwt.sign(data, process.env.ACCESS_TOKEN_SECRETS, {
+    //     expiresIn: "1hr",
+    //   });
+    //   res
+    //     .cookie("token", tokenDB, {
+    //       httpOnly: true,
+    //       secure: false,
+    //     })
+    //     .send({ success: true });
+    // });
+
+    // app.get("/brands", async (req, res) => {
+    //   const cursor = BrandNames.find();
+    //   const brandsDetails = await cursor.toArray();
+    //   res.send(brandsDetails);
+    // });
+
+    // app.get("/brands/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { brand: id };
+    //   const cursor = ProductCollection.find(query);
+    //   const brandProducts = await cursor.toArray();
+    //   res.send(brandProducts);
+    // });
+
+    // app.get("/productdetails/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const detailsProduct = await ProductCollection.findOne(query);
+    //   res.send(detailsProduct);
+    // });
+
+    // app.post("/addProducts", async (req, res) => {
+    //   const newProducts = req.body;
+    //   const result = await ProductCollection.insertOne(newProducts);
+    //   res.send(result);
+    // });
+
+    // app.post("/userProducts", async (req, res) => {
+    //   const userProduct = req.body;
+    //   const result = UserProductCollection.insertOne(userProduct);
+    //   res.send(result);
+    //   console.log(result);
+    // });
+
+    // app.get("/userProducts", async (req, res) => {
+    //   const cursor = UserProductCollection.find();
+    //   const userProductDetails = await cursor.toArray();
+    //   res.send(userProductDetails);
+    // });
+
+    // app.delete("/UserProductsData/:id", async (req, res) => {
+    //   const newId = req.params.id;
+    //   console.log(newId);
+    //   const query = { _id: new ObjectId(newId) };
+    //   const result = await UserProductCollection.deleteOne(query);
+    //   res.send(result);
+    //   console.log(result);
+    // });
+
+    // app.put("/update/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const updatedProducts = req.body;
+    //   console.log(id, updatedProducts);
+    //   const filter = { _id: new ObjectId(id) };
+    //   const options = { upsert: true };
+    //   const updateDoc = {
+    //     // brand,name,type,price,description,photoURL,cover,rating
+    //     $set: {
+    //       brand: updatedProducts.brand,
+    //       name: updatedProducts.name,
+    //       type: updatedProducts.type,
+    //       price: updatedProducts.price,
+    //       description: updatedProducts.description,
+    //       photoURL: updatedProducts.photoURL,
+    //       cover: updatedProducts.cover,
+    //       rating: updatedProducts.rating,
+    //     },
+    //   };
+    //   const result = await ProductCollection.updateOne(
+    //     filter,
+    //     updateDoc,
+    //     options
+    //   );
+    //   res.send(result);
+    // });
+
+    // Slider Collection
+
+    app.get('/slider',async(req,res)=>{
+      const cursor = sliderCollection.find();
+      const allUsers = await cursor.toArray();
+      res.send(allUsers);
+    })
+
+    // User Related APIS
     app.post("/user", async (req, res) => {
       const newUser = req.body;
       const result = userCollection.insertOne(newUser);
@@ -75,5 +177,9 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
+// app.get("/", function (req, res, next) {
+//   res.json({ msg: "This is CORS-enabled for all origins!" });
+// });
 
 app.listen(port);
