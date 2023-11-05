@@ -35,11 +35,12 @@ async function run() {
     // await client.connect();
 
     const database = client.db("Assingment11");
-    // const BrandNames = database.collection("BrandNames");
+    const BookCategoryList= database.collection("BookCategoryList");
     // const ProductCollection = database.collection("ProductCollection");
     // const UserProductCollection = database.collection("UserProductCollection");
     const userCollection = database.collection("UserCollection");
     const sliderCollection= database.collection("sliderCollection");
+    const AboutCollection= database.collection("AboutCollection");
 
     // app.post("/jwt", (req, res) => {
     //   const data = req.body;
@@ -54,11 +55,17 @@ async function run() {
     //     .send({ success: true });
     // });
 
-    // app.get("/brands", async (req, res) => {
-    //   const cursor = BrandNames.find();
-    //   const brandsDetails = await cursor.toArray();
-    //   res.send(brandsDetails);
-    // });
+    app.get("/bookCategory", async (req, res) => {
+      const cursor = BookCategoryList.find();
+      const BookCategory = await cursor.toArray();
+      res.send(BookCategory);
+    });
+
+    app.get("/about", async (req, res) => {
+      const cursor = AboutCollection.find();
+      const aboutImage = await cursor.toArray();
+      res.send(aboutImage);
+    });
 
     // app.get("/brands/:id", async (req, res) => {
     //   const id = req.params.id;
@@ -130,8 +137,8 @@ async function run() {
     //   res.send(result);
     // });
 
-    // Slider Collection
 
+    // Slider Collection
     app.get('/slider',async(req,res)=>{
       const cursor = sliderCollection.find();
       const allUsers = await cursor.toArray();
