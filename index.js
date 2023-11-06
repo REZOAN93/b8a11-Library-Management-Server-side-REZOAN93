@@ -36,11 +36,13 @@ async function run() {
 
     const database = client.db("Assingment11");
     const BookCategoryList= database.collection("BookCategoryList");
-    // const ProductCollection = database.collection("ProductCollection");
+    const BookCollection = database.collection("BookCollection");
+
     // const UserProductCollection = database.collection("UserProductCollection");
     const userCollection = database.collection("UserCollection");
     const sliderCollection= database.collection("sliderCollection");
     const AboutCollection= database.collection("AboutCollection");
+    const CommentsCollection= database.collection("CommentsCollection");
 
     // app.post("/jwt", (req, res) => {
     //   const data = req.body;
@@ -61,19 +63,25 @@ async function run() {
       res.send(BookCategory);
     });
 
+    app.get("/comments", async (req, res) => {
+      const cursor = CommentsCollection.find();
+      const commentCollection = await cursor.toArray();
+      res.send(commentCollection);
+    });
+
     app.get("/about", async (req, res) => {
       const cursor = AboutCollection.find();
       const aboutImage = await cursor.toArray();
       res.send(aboutImage);
     });
 
-    // app.get("/brands/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { brand: id };
-    //   const cursor = ProductCollection.find(query);
-    //   const brandProducts = await cursor.toArray();
-    //   res.send(brandProducts);
-    // });
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { category: id };
+      const cursor = BookCollection.find(query);
+      const BookByCategory = await cursor.toArray();
+      res.send(BookByCategory);
+    });
 
     // app.get("/productdetails/:id", async (req, res) => {
     //   const id = req.params.id;
@@ -82,11 +90,11 @@ async function run() {
     //   res.send(detailsProduct);
     // });
 
-    // app.post("/addProducts", async (req, res) => {
-    //   const newProducts = req.body;
-    //   const result = await ProductCollection.insertOne(newProducts);
-    //   res.send(result);
-    // });
+    app.post("/addbook", async (req, res) => {
+      const newBook = req.body;
+      const result = await BookCollection.insertOne(newBook);
+      res.send(result);
+    });
 
     // app.post("/userProducts", async (req, res) => {
     //   const userProduct = req.body;
