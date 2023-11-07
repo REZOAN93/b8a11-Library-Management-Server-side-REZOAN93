@@ -38,11 +38,11 @@ const verifyToken = async (req, res, next) => {
   }
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRETS, (err, decoded) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(401).send({ message: "Unauthorized" });
     }
     // if token is valid then it would be decoded
-    console.log("value in the token ", decoded);
+    // console.log("value in the token ", decoded);
     req.loggedUserData = decoded;
     next();
   });
@@ -65,7 +65,7 @@ async function run() {
     // user Jwt related API
     app.post("/jwt", async(req, res) => {
       const data = req.body;
-      console.log(data,"Email for the JWT setup")
+      // console.log(data,"Email for the JWT setup")
       const tokenDB = jwt.sign(data,process.env.ACCESS_TOKEN_SECRETS, {
         expiresIn: "1hr",
       });
@@ -159,8 +159,16 @@ async function run() {
       const result = await BookCollection.insertOne(newBook);
       res.send(result);
     });
-    app.post("/addBorrowedBook",verifyToken, async (req, res) => {
-      const newBook = req.body;
+
+    app.post("/addBorrowedBook/:id",verifyToken, async (req, res) => {
+      const readyToBookId = req.params.id;
+      const newBook=req.body
+      const { email } = req.body;
+      console.log(readyToBookId,newBook,"Book Id for the new Borrow")
+      const existingBook = await BorrowedBookCollection.findOne({ email, bookId: readyToBookId });
+      if (existingBook) {
+        return res.status(400).json({ error: "Duplicate entry. Book with the same email and bookId already exists." });
+      }
       const result = await BorrowedBookCollection.insertOne(newBook);
       res.send(result);
     });
@@ -168,7 +176,7 @@ async function run() {
     app.put("/update/:id", async (req, res) => {
       const id = req.params.id;
       const updatedqty = req.body;
-      console.log(id, updatedqty.qty);
+      // console.log(id, updatedqty.qty);
       // const filter = { _id: new ObjectId(id) };
       // // const options = { upsert: true };
       const updateDoc = await BookCollection.findOneAndUpdate(
@@ -181,7 +189,7 @@ async function run() {
 
     app.put("/returnBorrowed/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id,"Return for borrowed")
+      // console.log(id,"Return for borrowed")
       const updateDoc = await BookCollection.findOneAndUpdate(
         { _id: new ObjectId(id)},
         { $inc: { qty: +1 } },
@@ -190,26 +198,19 @@ async function run() {
       res.send({success:true});
     });
 
-    // app.post("/userProducts", async (req, res) => {
-    //   const userProduct = req.body;
-    //   const result = UserProductCollection.insertOne(userProduct);
-    //   res.send(result);
-    //   console.log(result);
-    // });
-
     app.delete("/deleteBorrowed/:id", async (req, res) => {
       const newId = req.params.id;
-      console.log(newId);
+      // console.log(newId);
       const query = { _id: new ObjectId(newId) };
       const result = await BorrowedBookCollection.deleteOne(query);
       res.send(result);
-      console.log(result);
+      // console.log(result);
     });
 
     app.put("/updateBook/:id", async (req, res) => {
       const id = req.params.id;
       const updatedBook = req.body;
-      console.log(id, updatedBook);
+      // console.log(id, updatedBook);
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
@@ -244,7 +245,7 @@ async function run() {
       const newUser = req.body;
       const result = userCollection.insertOne(newUser);
       res.send(result);
-      console.log(newUser);
+      // console.log(newUser);
     });
 
     app.get("/users", async (req, res) => {
@@ -279,8 +280,5 @@ async function run() {
 }
 run().catch(console.dir);
 
-// app.get("/", function (req, res, next) {
-//   res.json({ msg: "This is CORS-enabled for all origins!" });
-// });
 
 app.listen(port);
