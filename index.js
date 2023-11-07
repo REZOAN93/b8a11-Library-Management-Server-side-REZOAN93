@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken')
 
 // middleware
 app.use(
@@ -30,6 +31,24 @@ const client = new MongoClient(uri, {
   },
 });
 
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "forbidden" });
+  }
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRETS, (err, decoded) => {
+    if (err) {
+      console.log(err);
+      return res.status(401).send({ message: "Unauthorized" });
+    }
+    // if token is valid then it would be decoded
+    console.log("value in the token ", decoded);
+    req.loggedUserData = decoded;
+    next();
+  });
+};
+
+
 async function run() {
   try {
     // await client.connect();
@@ -43,26 +62,43 @@ async function run() {
     const CommentsCollection= database.collection("CommentsCollection");
     const BorrowedBookCollection= database.collection("BorrowedBookCollection");
 
-    // app.post("/jwt", (req, res) => {
-    //   const data = req.body;
-    //   const tokenDB = jwt.sign(data, process.env.ACCESS_TOKEN_SECRETS, {
-    //     expiresIn: "1hr",
-    //   });
-    //   res
-    //     .cookie("token", tokenDB, {
-    //       httpOnly: true,
-    //       secure: false,
-    //     })
-    //     .send({ success: true });
-    // });
+    // user Jwt related API
+    app.post("/jwt", async(req, res) => {
+      const data = req.body;
+      console.log(data,"Email for the JWT setup")
+      const tokenDB = jwt.sign(data,process.env.ACCESS_TOKEN_SECRETS, {
+        expiresIn: "1hr",
+      });
+      res
+        .cookie("token", tokenDB, {
+          httpOnly: true,
+          secure: true,
+          sameSite:'none'
+        })
+        .send({ success: true });
+    });
 
+
+    app.post('/logoutUser',async(req,res)=>{
+      const user=req.body;
+      res.clearCookie('token',{maxAge:0}).send({success:true})
+    })
+
+    // book related Api
     app.get("/bookCategory", async (req, res) => {
       const cursor = BookCategoryList.find();
       const BookCategory = await cursor.toArray();
       res.send(BookCategory);
     });
 
-    app.get("/allBooks", async (req, res) => {
+    app.get("/allBooks",verifyToken, async (req, res) => {
+      if (req.query?.email !== req.loggedUserData?.email) {
+        return res.status(403).send("Forbidden access");
+      } 
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
       const cursor = BookCollection.find();
       const allBooks = await cursor.toArray();
       res.send(allBooks);
@@ -89,10 +125,14 @@ async function run() {
     });
 
 
-    app.get("/userBorrowedBooks/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log(id)
-      const query = {email: id };
+    app.get("/userBorrowedBooks",verifyToken, async (req, res) => {
+      if (req.query?.email !== req.loggedUserData?.email) {
+        return res.status(403).send("Forbidden access");
+      }
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
       const cursor = BorrowedBookCollection.find(query);
       const userBookDetails = await cursor.toArray();
       res.send(userBookDetails);
@@ -107,12 +147,19 @@ async function run() {
     });
 
 
-    app.post("/addbook", async (req, res) => {
+    app.post("/addbook",verifyToken, async (req, res) => {
+      if (req.query?.email !== req.loggedUserData?.email) {
+        return res.status(403).send("Forbidden access");
+      }
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
       const newBook = req.body;
       const result = await BookCollection.insertOne(newBook);
       res.send(result);
     });
-    app.post("/addBorrowedBook", async (req, res) => {
+    app.post("/addBorrowedBook",verifyToken, async (req, res) => {
       const newBook = req.body;
       const result = await BorrowedBookCollection.insertOne(newBook);
       res.send(result);
