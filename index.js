@@ -37,8 +37,6 @@ async function run() {
     const database = client.db("Assingment11");
     const BookCategoryList= database.collection("BookCategoryList");
     const BookCollection = database.collection("BookCollection");
-
-    // const UserProductCollection = database.collection("UserProductCollection");
     const userCollection = database.collection("UserCollection");
     const sliderCollection= database.collection("sliderCollection");
     const AboutCollection= database.collection("AboutCollection");
@@ -62,6 +60,12 @@ async function run() {
       const cursor = BookCategoryList.find();
       const BookCategory = await cursor.toArray();
       res.send(BookCategory);
+    });
+
+    app.get("/allBooks", async (req, res) => {
+      const cursor = BookCollection.find();
+      const allBooks = await cursor.toArray();
+      res.send(allBooks);
     });
 
     app.get("/comments", async (req, res) => {
@@ -102,6 +106,7 @@ async function run() {
       res.send(detailsBook);
     });
 
+
     app.post("/addbook", async (req, res) => {
       const newBook = req.body;
       const result = await BookCollection.insertOne(newBook);
@@ -127,6 +132,17 @@ async function run() {
       res.send({success:true});
     });
 
+    app.put("/returnBorrowed/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id,"Return for borrowed")
+      const updateDoc = await BookCollection.findOneAndUpdate(
+        { _id: new ObjectId(id)},
+        { $inc: { qty: +1 } },
+        { returnOriginal: false },
+      )
+      res.send({success:true});
+    });
+
     // app.post("/userProducts", async (req, res) => {
     //   const userProduct = req.body;
     //   const result = UserProductCollection.insertOne(userProduct);
@@ -143,32 +159,30 @@ async function run() {
       console.log(result);
     });
 
-    // app.put("/update/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const updatedProducts = req.body;
-    //   console.log(id, updatedProducts);
-    //   const filter = { _id: new ObjectId(id) };
-    //   const options = { upsert: true };
-    //   const updateDoc = {
-    //     // brand,name,type,price,description,photoURL,cover,rating
-    //     $set: {
-    //       brand: updatedProducts.brand,
-    //       name: updatedProducts.name,
-    //       type: updatedProducts.type,
-    //       price: updatedProducts.price,
-    //       description: updatedProducts.description,
-    //       photoURL: updatedProducts.photoURL,
-    //       cover: updatedProducts.cover,
-    //       rating: updatedProducts.rating,
-    //     },
-    //   };
-    //   const result = await ProductCollection.updateOne(
-    //     filter,
-    //     updateDoc,
-    //     options
-    //   );
-    //   res.send(result);
-    // });
+    app.put("/updateBook/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedBook = req.body;
+      console.log(id, updatedBook);
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        // name, price, category, author, description, photoURL, rating, qty, details, bookLink
+        $set: {
+          category: updatedBook.category,
+          name: updatedBook.name,
+          author: updatedBook.author,
+          price: updatedBook.price,
+          description: updatedBook.description,
+          photoURL: updatedBook.photoURL,
+          rating: updatedBook.rating,
+          qty: updatedBook.qty,
+          details: updatedBook.details,
+          bookLink: updatedBook.bookLink,
+        },
+      };
+      const result = await BookCollection.updateOne(filter,updateDoc,options);
+      res.send(result);
+    });
 
 
     // Slider Collection
