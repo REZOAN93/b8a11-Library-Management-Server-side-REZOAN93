@@ -43,6 +43,7 @@ async function run() {
     const sliderCollection= database.collection("sliderCollection");
     const AboutCollection= database.collection("AboutCollection");
     const CommentsCollection= database.collection("CommentsCollection");
+    const BorrowedBookCollection= database.collection("BorrowedBookCollection");
 
     // app.post("/jwt", (req, res) => {
     //   const data = req.body;
@@ -83,17 +84,47 @@ async function run() {
       res.send(BookByCategory);
     });
 
-    // app.get("/productdetails/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const detailsProduct = await ProductCollection.findOne(query);
-    //   res.send(detailsProduct);
-    // });
+
+    app.get("/userBorrowedBooks/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id)
+      const query = {email: id };
+      const cursor = BorrowedBookCollection.find(query);
+      const userBookDetails = await cursor.toArray();
+      res.send(userBookDetails);
+    });
+
+
+    app.get("/bookdetails/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const detailsBook = await BookCollection.findOne(query);
+      res.send(detailsBook);
+    });
 
     app.post("/addbook", async (req, res) => {
       const newBook = req.body;
       const result = await BookCollection.insertOne(newBook);
       res.send(result);
+    });
+    app.post("/addBorrowedBook", async (req, res) => {
+      const newBook = req.body;
+      const result = await BorrowedBookCollection.insertOne(newBook);
+      res.send(result);
+    });
+    
+    app.put("/update/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedqty = req.body;
+      console.log(id, updatedqty.qty);
+      // const filter = { _id: new ObjectId(id) };
+      // // const options = { upsert: true };
+      const updateDoc = await BookCollection.findOneAndUpdate(
+        { _id: new ObjectId(id)},
+        { $inc: { qty: -1 } },
+        { returnOriginal: false },
+      )
+      res.send({success:true});
     });
 
     // app.post("/userProducts", async (req, res) => {
@@ -103,20 +134,14 @@ async function run() {
     //   console.log(result);
     // });
 
-    // app.get("/userProducts", async (req, res) => {
-    //   const cursor = UserProductCollection.find();
-    //   const userProductDetails = await cursor.toArray();
-    //   res.send(userProductDetails);
-    // });
-
-    // app.delete("/UserProductsData/:id", async (req, res) => {
-    //   const newId = req.params.id;
-    //   console.log(newId);
-    //   const query = { _id: new ObjectId(newId) };
-    //   const result = await UserProductCollection.deleteOne(query);
-    //   res.send(result);
-    //   console.log(result);
-    // });
+    app.delete("/deleteBorrowed/:id", async (req, res) => {
+      const newId = req.params.id;
+      console.log(newId);
+      const query = { _id: new ObjectId(newId) };
+      const result = await BorrowedBookCollection.deleteOne(query);
+      res.send(result);
+      console.log(result);
+    });
 
     // app.put("/update/:id", async (req, res) => {
     //   const id = req.params.id;
