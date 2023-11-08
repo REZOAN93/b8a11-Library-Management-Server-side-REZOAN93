@@ -10,7 +10,8 @@ const jwt = require('jsonwebtoken')
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://assingment11-ed720.web.app"],
+    // origin: ["http://localhost:5173"],
     credentials: true,
   })
 );
@@ -68,18 +69,19 @@ async function run() {
         expiresIn: "1hr",
       });
       res
-        .cookie("token", tokenDB, {
-          httpOnly: true,
-          secure: true,
-          sameSite:'none'
-        })
+      .cookie('token', tokenDB, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    })
         .send({ success: true });
     });
 
 
     app.post('/logoutUser',async(req,res)=>{
       const user=req.body;
-      res.clearCookie('token',{maxAge:0}).send({success:true})
+      res.clearCookie('token').send({success:true})
+      // res.clearCookie('token',{maxAge:0}).send({success:true})
     })
 
     // book related Api
@@ -127,6 +129,7 @@ async function run() {
       if (req.query?.email !== req.loggedUserData?.email) {
         return res.status(403).send("Forbidden access");
       }
+      console.log(req.query.email)
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
