@@ -20,8 +20,6 @@ app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.SECRET_KEY}@cluster0.lh0lzsv.mongodb.net/?retryWrites=true&w=majority`;
 
-
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -241,6 +239,20 @@ async function run() {
     })
 
     // User Related APIS
+
+    app.post('/isAdmin',async(req,res)=>{
+      const loggedemail=req.body.email;
+      const userData = await userCollection.findOne({ email:loggedemail });
+      console.log(userData,'userData',userData&&userData.role &&userData.role=='librarian')
+      if(userData&&userData.role &&userData.role=='librarian'){
+        res.send(true)
+      }else{
+        res.send(false)
+      }
+    })
+
+
+
     app.post("/user", async (req, res) => {
       const newUser = req.body;
       const result = userCollection.insertOne(newUser);
